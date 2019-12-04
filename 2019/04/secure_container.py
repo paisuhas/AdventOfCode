@@ -3,7 +3,7 @@ from collections import Counter
 
 def can_be_password_part1(n):
     num = str(n)
-    return any(i == j for i, j in zip(num, num[1:])) and all(int(i) <= int(j) for i, j in zip(num, num[1:]))
+    return all(int(i) <= int(j) for i, j in zip(num, num[1:])) and any(i == j for i, j in zip(num, num[1:]))
 
 part1 = sum(map(can_be_password_part1, range(108457, 562042)))
 
