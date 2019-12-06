@@ -3,9 +3,17 @@
 def decode(opcode):
     op = opcode % 100
     modes = []
-    for i in [100, 1000, 10000]:
+    for i in [100, 1000]:
         modes.append((opcode // i) % 10)
     return (modes, op)
+
+def get_operands(pc, modes):
+    global program
+    operands = []
+    for offset, mode in enumerate(modes, 1):
+        address = pc + offset if mode else program[pc+offset]
+        operands.append(program[address])
+    return operands
 
 program = list(map(int, open("input.txt").readlines()[0].strip().split(',')))
 
@@ -20,7 +28,7 @@ for pc, opcode in enumerate(program):
     if pc == next_pc:
         modes, op = decode(opcode)
         if op in three_op_instructions:
-            operands = [program[pc+offset] if mode else program[program[pc+offset]] for offset, mode in enumerate(modes[:-1], 1)]
+            operands = get_operands(pc, modes)
             next_pc = pc + 4
             if op == 1:
                 result = sum(operands)
@@ -28,7 +36,6 @@ for pc, opcode in enumerate(program):
                 assert(op == 2)
                 result = operands[0] * operands[1]
 
-            assert(modes[-1] == 0)
             program[program[pc + 3]] = result
         elif op in one_op_instructions:
             next_pc = pc + 2
@@ -41,14 +48,14 @@ for pc, opcode in enumerate(program):
                 else:
                     print(program[program[pc+1]])
         elif op in jump_instructions:
-            operands = [program[pc+offset] if mode else program[program[pc+offset]] for offset, mode in enumerate(modes[:-1], 1)]
+            operands = get_operands(pc, modes)
             if (op == 5 and operands[0]) or (op == 6 and not operands[0]):
                 next_pc = operands[1]
             else:
                 next_pc = pc + 3
         elif op in comparison_instructions:
             next_pc = pc + 4
-            operands = [program[pc+offset] if mode else program[program[pc+offset]] for offset, mode in enumerate(modes[:-1], 1)]
+            operands = get_operands(pc, modes)
             if (op == 7 and operands[0] < operands[1]) or (op == 8 and operands[0] == operands[1]):
                 program[program[pc+3]] = 1
             else:
