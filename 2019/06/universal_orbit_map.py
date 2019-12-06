@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from itertools import takewhile
 
 with open('input.txt') as orbits:
     orbit_dict = dict()
@@ -8,7 +7,7 @@ with open('input.txt') as orbits:
         orbit_dict[orbiter] = center
 
     total = len(orbit_dict.keys())
-    for k in orbit_dict.keys():
+    for k in orbit_dict:
         v = orbit_dict[k]
         while v in orbit_dict.keys():
             total += 1
@@ -28,7 +27,6 @@ with open('input.txt') as orbits:
         k = orbit_dict[k]
         santas_path.append(k)
 
-    transfers = sum(1 for k in takewhile(lambda x: x not in santas_path, your_path))
-    transfers += sum(1 for k in takewhile(lambda x: x not in your_path, santas_path))
+    transfers = sum(k not in santas_path for k in your_path) + sum(k not in your_path for k in santas_path)
     print(transfers)
     assert(transfers == 271)
