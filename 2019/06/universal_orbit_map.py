@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-from collections import defaultdict
 from itertools import takewhile
 
 with open('input.txt') as orbits:
-    orbit_dict = defaultdict(str)
+    orbit_dict = dict()
     for orbit in orbits:
         center, orbiter = orbit.strip().split(')')
         orbit_dict[orbiter] = center
