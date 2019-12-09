@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+from itertools import permutations
+from itertools import cycle
+
+def decode(opcode):
+    op = opcode % 100
+    modes = []
+    for i in [100, 1000]:
+        modes.append((opcode // i) % 10)
+    return (modes, op)
+
+def get_operands(pc, modes):
+    global program
+    operands = []
+    for offset, mode in enumerate(modes, 1):
+        address = pc + offset if mode else program[pc+offset]
+        operands.append(program[address])
+    return operands
+
+def get_inputs(in1, in2):
+    yield in1
+    yield in2
+
+def run_program(in1, in2):
+    next_pc = 0
+    pc = next_pc
+
+    three_op_instructions = [1, 2]
+    one_op_instructions = [3, 4]
+    jump_instructions = [5, 6]
+    comparison_instructions = [7, 8]
+
+    inputs = get_inputs(in1, in2)
+    output_signal = None
+
+    while True:
+        opcode = program[pc]
+        modes, op = decode(opcode)
+        if op in three_op_instructions:
+            operands = get_operands(pc, modes)
+            next_pc = pc + 4
+            if op == 1:
+                result = sum(operands)
+            else:
+                assert(op == 2)
+                result = operands[0] * operands[1]
+            program[program[pc + 3]] = result
+        elif op in one_op_instructions:
+            next_pc = pc + 2
+            if op == 3:
+                program[program[pc+1]] = inputs.__next__();
+            else:
+                assert(op == 4)
+                if modes[0]:
+                    output_signal = program[pc+1]
+                else:
+                    output_signal = program[program[pc+1]]
+        elif op in jump_instructions:
+            operands = get_operands(pc, modes)
+            if (op == 5 and operands[0]) or (op == 6 and not operands[0]):
+                next_pc = operands[1]
+            else:
+                next_pc = pc + 3
+        elif op in comparison_instructions:
+            next_pc = pc + 4
+            operands = get_operands(pc, modes)
+            if (op == 7 and operands[0] < operands[1]) or (op == 8 and operands[0] == operands[1]):
+                program[program[pc+3]] = 1
+            else:
+                program[program[pc+3]] = 0
+        else:
+            assert(op == 99)
+            break
+        pc = next_pc
+    assert(output_signal is not None)
+    return output_signal
+
+# Part 1
+max_output = None
+for phases in permutations(range(5), 5):
+    program = list(map(int, open("input.txt").readlines()[0].strip().split(',')))
+    inp = 0
+    for phase in phases:
+        inp = run_program(phase, inp)
+    if max_output is None or inp > max_output:
+        max_output = inp
+
+print(max_output)
